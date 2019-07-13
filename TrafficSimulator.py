@@ -30,7 +30,7 @@ def main():
     light_down.toGreen()
     car_list = []
     steps = 1
-    time_step = 0.05
+    time_step = 0.01
     while 1:
         steps += 1
         if(steps % 100 == 0):
@@ -39,16 +39,18 @@ def main():
             steps = 1
         if(rnd.randint(0, 10) < 3):
             car_list.append(Car(cross, 'R', light_right))
-            # print(car_list)
+
         if(rnd.randint(0, 10) < 3):
             car_list.append(Car(cross, 'D', light_down))
-        for car in car_list:
-            car.move()
-        # permissojn
+        # move car and remove from list if move to end
+        car_list = [car for car in car_list if (car.move() != -1)]
+        # for car in car_list:
+        #     res = car.move()
+        #     if(res == -1):
+        #         car_list
+
         root.update()
         time.sleep(time_step)
-
-    # root.mainloop()
 
 
 if __name__ == "__main__":

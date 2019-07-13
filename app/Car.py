@@ -33,6 +33,10 @@ class Car:
         # get next position moving to
         nextx = self.posx + self.dx
         nexty = self.posy + self.dy
+        total_road_units = gv.total_width/gv.unit
+        if(nextx > total_road_units or nexty > total_road_units or nextx < 0 or nexty < 0):
+            gv.roadmap[self.posx, self.posy] = True
+            return -1  # destroy it while moving out of boundary
         if(gv.roadmap[nextx, nexty] and self.lightMoveable(nextx, nexty)):
             # if moveable, then move
             self.canvas.move(self.car, self.dx * gv.car_length,
@@ -42,7 +46,9 @@ class Car:
             self.posx += self.dx
             self.posy += self.dy
             gv.roadmap[self.posx, self.posy] = False
+            return 1  # moved
         # else do nothing
+        return 0  # not moved
 
     def lightMoveable(self, nextx, nexty):
         return self.light.checkMoveable(nextx, nexty)
