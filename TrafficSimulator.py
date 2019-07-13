@@ -6,38 +6,49 @@ import time
 import random as rnd
 from app.Car import Car
 from app.Light import Light
-from app.Constants import *
+import app.GlobalVars as gv
 
 
 def main():
+    gv.init()
     root = Tk()
     root.title('Traffic Light Simulator')
     # creating the roads
-    cross = Canvas(root, width=total_width, height=total_width, bg='grey')
-    roadx = cross.create_rectangle(block_width, 0,
-                                   road_width+block_width, 2*block_width+road_width,
+    cross = Canvas(root, width=gv.total_width,
+                   height=gv.total_width, bg='grey')
+    roadx = cross.create_rectangle(gv.block_width, 0,
+                                   gv.road_width+gv.block_width, 2*gv.block_width+gv.road_width,
                                    fill="black"
                                    )
-    roady = cross.create_rectangle(0, block_width,
-                                   2*block_width+road_width, block_width+road_width,
+    roady = cross.create_rectangle(0, gv.block_width,
+                                   2*gv.block_width+gv.road_width, gv.block_width+gv.road_width,
                                    fill="black"
                                    )
     cross.pack()
     light_right = Light(cross, 'R')
     light_down = Light(cross, 'D')
-
-    example_car = Car(cross, 'R')
-    example_car2 = Car(cross, 'D')
-
-    #
-
-    for x in range(car_length, total_width, car_length):
-        example_car.move()
-        example_car2.move()
+    light_down.toGreen()
+    car_list = []
+    steps = 1
+    time_step = 0.05
+    while 1:
+        steps += 1
+        if(steps % 100 == 0):
+            light_right.switchColor()
+            light_down.switchColor()
+            steps = 1
+        if(rnd.randint(0, 10) < 3):
+            car_list.append(Car(cross, 'R', light_right))
+            # print(car_list)
+        if(rnd.randint(0, 10) < 3):
+            car_list.append(Car(cross, 'D', light_down))
+        for car in car_list:
+            car.move()
+        # permissojn
         root.update()
-        time.sleep(0.05)
+        time.sleep(time_step)
 
-    root.mainloop()
+    # root.mainloop()
 
 
 if __name__ == "__main__":
