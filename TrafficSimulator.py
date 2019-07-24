@@ -9,6 +9,7 @@ from app.Light import Light
 import app.GlobalVars as gv
 from app.FixedSwitch import FixedSwitch
 from app.Qlearning import Qlearning
+import matplotlib.pyplot as plt
 
 
 class State:
@@ -54,10 +55,17 @@ def main():
     car_list2 = []  # to down cars list
     steps = 1
     time_step = 0.01
-    # algorithm = FixedSwitch()
     st = State(1, 9, 9, 0, 1)  # initialize a state
     time_total = 0
-    algorithm = qLearning
+    end_time = 10
+    # Keeps track of useful statistics
+    stats = {
+        'time_step': [time_total],
+        'rewards': [0]
+    }
+
+    algorithm = FixedSwitch()
+    # algorithm = qLearning  # select algorithm
     while time_total < 10:  # training for some period of time
         st.steps += 1
 
@@ -108,9 +116,15 @@ def main():
         root.update()
         time.sleep(time_step)
         time_total += time_step
-        print(time_total)
+        stats['time_step'].append(time_total)
+        stats['rewards'].append(reward)
+        # print(time_total)  # DEBUG USE
 
     # finish training / execution
+    plt.plot(stats['time_step'], stats['rewards'])
+    plt.xlabel('Time')
+    plt.ylabel('Reward')
+    plt.show()
     algorithm.saveResult()
 
 

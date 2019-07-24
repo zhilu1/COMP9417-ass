@@ -36,6 +36,7 @@ class Qlearning:
         self.epsilon = epsilon
         self.action_space = action_space
         self.state = initial_state  # x = x0
+        # TODO will it be better to use DataFrame or defaultdict
         self.Q = collections.defaultdict(
             lambda: np.zeros(len(self.action_space)))
         self.action = self.chooseActionByPolicy(self.state)
@@ -84,12 +85,5 @@ class Qlearning:
                 lambda: np.zeros(len(self.action_space)))
             self.Q.update(P.item())
         except (OSError, IOError) as e:
-            # if file not exists or error in loading, create an empty file
-            # print(e)
+            # if file not exists or error in loading, create an empty defaultdict
             return collections.defaultdict(lambda: np.zeros(len(self.action_space)))
-            # csvwriter = csv.writer(csvfile)
-            # # csvwriter.writeheader()
-            # for key, val in self.Q.items():
-            #     # row = {'org': key}
-            #     # row.update(val)
-            #     csvwriter.writerow(val)
