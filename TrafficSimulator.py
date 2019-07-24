@@ -13,9 +13,8 @@ import matplotlib.pyplot as plt
 
 
 class State:
-    def __init__(self, steps, closest_car_pos_road1,
+    def __init__(self, closest_car_pos_road1,
                  closest_car_pos_road2, light_setting1, light_setting2):
-        self.steps = steps
         self.ccp1 = closest_car_pos_road1  # road 1 is right to left
         self.ccp2 = closest_car_pos_road2  # road 2 is up to down
         self.light_setting1 = light_setting1
@@ -27,7 +26,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(1, 9, 9, 0, 1), True)
+    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(9, 9, 0, 1), True)
 
 
 def main():
@@ -53,9 +52,8 @@ def main():
     light_down.toGreen()
     car_list1 = []  # to right cars list
     car_list2 = []  # to down cars list
-    steps = 1
     time_step = 0.01
-    st = State(1, 9, 9, 0, 1)  # initialize a state
+    st = State(9, 9, 0, 1)  # initialize a state
     time_total = 0
     end_time = 10
     # Keeps track of useful statistics
@@ -67,7 +65,6 @@ def main():
     algorithm = FixedSwitch()
     # algorithm = qLearning  # select algorithm
     while time_total < 10:  # training for some period of time
-        st.steps += 1
 
         # switch based on policy action
         # get action a based on policy
@@ -121,11 +118,12 @@ def main():
         # print(time_total)  # DEBUG USE
 
     # finish training / execution
+    algorithm.saveResult()
     plt.plot(stats['time_step'], stats['rewards'])
     plt.xlabel('Time')
     plt.ylabel('Reward')
     plt.show()
-    algorithm.saveResult()
+    plt.savefig('plot' + type(algorithm).__name__)
 
 
 def updateLightState(state):

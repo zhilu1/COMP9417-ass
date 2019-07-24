@@ -1,9 +1,13 @@
 class FixedSwitch:
-    def getAction(self, state):
-        if state.steps >= 10:
-            state.steps = 1
+    def __init__(self):
+        self.steps = 1
+
+    def getAction(self):
+        if self.steps >= 10:
+            self.steps = 1
             return 0b11  # switch both
         else:
+            self.steps += 1
             return 0b00  # switch neither
 
     def learn(self, reward, newstate):
