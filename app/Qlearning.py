@@ -24,28 +24,36 @@ learnt policies.
 
 """
 import numpy as np
-
+import pickle
 import collections
 import csv
 
 
 class Qlearning:
-    def __init__(self, discount_factor, learning_rate, epsilon, action_space, initial_state):
+    def __init__(self, discount_factor, learning_rate, epsilon, action_space, initial_state, useFile):
         self.discount_factor = discount_factor
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.action_space = action_space
-        # Q(x,a) = 0 for all x,a
-        Q = collections.defaultdict(lambda: np.zeros(len(action_space)))
         self.state = initial_state  # x = x0
-        # policy is a dictionary that takes a state and return a list indexed by action containing action prob
+        self.Q = collections.defaultdict(
+            lambda: np.zeros(len(self.action_space)))
+        self.action = self.chooseActionByPolicy(self.state)
+
+    def createQTable(self, useFile):
+        if useFile:
+            return self.loadQtable()
+        else:
+            collections.defaultdict(
+                lambda: np.zeros(len(self.action_space)))
 
     def getAction(self):
         # use epsilon greedy policy in execution
         if(np.random.rand() < self.epsilon):
-            return np.random.choice(self.action_space)
+            self.action = np.random.choice(self.action_space)
         else:
-            return self.chooseActionByPolicy(self.state)
+            self.action = self.chooseActionByPolicy(self.state)
+        return self.action
 
     def chooseActionByPolicy(self, state):
         # policy is getting the most rewarding action
@@ -54,15 +62,34 @@ class Qlearning:
     def learn(self, reward, newstate):
         # get newaction using original policy
         newaction = self.chooseActionByPolicy(newstate)
+
         # update Q table, which is improving the algorithm
         # Q(x,a) = Q(x,a) + learningRate* (reward + discountFactor*Q(newState, newAction) - Q(x,a))
-        self.Q[state][action] += self.learning_rate * \
+        self.Q[self.state][self.action] += self.learning_rate * \
             (reward + self.discount_factor *
              self.Q[newstate][newaction] - self.Q[self.state][self.action])
         # update state to new state
         self.state = newstate
 
     def saveResult(self):
-        with open('Qlearning_table.csv', 'w') as csvfile:
-            csvwriter = csv.DictWriter(csvfile)
-            csvwriter.writerows(self.Q)
+        np.save('qtable', np.array(dict(self.Q)))
+        # with open('qtable.pkl', 'wb') as file:
+        #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def loadQtable(self):
+        # load Q table from file if file exists
+        try:
+            P = np.load('qtable.npy')
+            self.Q = collections.defaultdict(
+                lambda: np.zeros(len(self.action_space)))
+            self.Q.update(P.item())
+        except (OSError, IOError) as e:
+            # if file not exists or error in loading, create an empty file
+            # print(e)
+            return collections.defaultdict(lambda: np.zeros(len(self.action_space)))
+            # csvwriter = csv.writer(csvfile)
+            # # csvwriter.writeheader()
+            # for key, val in self.Q.items():
+            #     # row = {'org': key}
+            #     # row.update(val)
+            #     csvwriter.writerow(val)

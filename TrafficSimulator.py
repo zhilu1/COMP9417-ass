@@ -10,10 +10,23 @@ import app.GlobalVars as gv
 from app.FixedSwitch import FixedSwitch
 from app.Qlearning import Qlearning
 
+
+class State:
+    def __init__(self, steps, closest_car_pos_road1,
+                 closest_car_pos_road2, light_setting1, light_setting2):
+        self.steps = steps
+        self.ccp1 = closest_car_pos_road1  # road 1 is right to left
+        self.ccp2 = closest_car_pos_road2  # road 2 is up to down
+        self.light_setting1 = light_setting1
+        self.light_setting2 = light_setting2
+        self.light_delay1 = 0
+        self.light_delay2 = 0
+
+
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(1, 9, 9, 0, 1))
+    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(1, 9, 9, 0, 1), True)
 
 
 def main():
@@ -41,17 +54,17 @@ def main():
     car_list2 = []  # to down cars list
     steps = 1
     time_step = 0.01
-    algorithm = FixedSwitch()
+    # algorithm = FixedSwitch()
     st = State(1, 9, 9, 0, 1)  # initialize a state
-
+    time_total = 0
     algorithm = qLearning
-    while 1:
+    while time_total < 10:  # training for some period of time
         st.steps += 1
 
         # switch based on policy action
         # get action a based on policy
         # take action a
-        takeAction(algorithm.getAction(st))
+        takeAction(algorithm.getAction())
 
         # generating cars randomly
         if(rnd.randint(0, 10) < 3):
@@ -94,6 +107,8 @@ def main():
 
         root.update()
         time.sleep(time_step)
+        time_total += time_step
+        print(time_total)
 
     # finish training / execution
     algorithm.saveResult()
@@ -123,18 +138,6 @@ def takeAction(action):
         light_down.switchColor()
     light_right.decrementDelay()
     light_down.decrementDelay()
-
-
-class State:
-    def __init__(self, steps, closest_car_pos_road1,
-                 closest_car_pos_road2, light_setting1, light_setting2):
-        steps = steps
-        ccp1 = closest_car_pos_road1  # road 1 is right to left
-        ccp2 = closest_car_pos_road2  # road 2 is up to down
-        light_setting1 = light_setting1
-        light_setting2 = light_setting2
-        light_delay1 = 0
-        light_delay2 = 0
 
 
 if __name__ == "__main__":
