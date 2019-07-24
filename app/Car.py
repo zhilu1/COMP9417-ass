@@ -50,7 +50,6 @@ class Car:
             gv.roadmap[self.posx, self.posy] = False
             self.stopped = False  # movable
             return 1  # moved
-
         self.stopped = True  # unmovable
         return 0  # not moved
 

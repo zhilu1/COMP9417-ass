@@ -52,7 +52,7 @@ def main():
     light_down.toGreen()
     car_list1 = []  # to right cars list
     car_list2 = []  # to down cars list
-    time_step = 0.01
+    time_step = 0.001
     st = State(9, 9, 0, 1)  # initialize a state
     time_total = 0
     end_time = 10
@@ -62,8 +62,8 @@ def main():
         'rewards': [0]
     }
 
-    algorithm = FixedSwitch()
-    # algorithm = qLearning  # select algorithm
+    # algorithm = FixedSwitch()
+    algorithm = qLearning  # select algorithm
     while time_total < 10:  # training for some period of time
 
         # switch based on policy action
@@ -72,11 +72,11 @@ def main():
         takeAction(algorithm.getAction())
 
         # generating cars randomly
-        if(rnd.randint(0, 10) < 3):
-            car_list1.append(Car(cross, 'R', light_right))
+        if(rnd.randint(0, 10) < 2):
+            car_list1.insert(0, Car(cross, 'R', light_right))
 
-        if(rnd.randint(0, 10) < 3):
-            car_list2.append(Car(cross, 'D', light_down))
+        if(rnd.randint(0, 10) < 2):
+            car_list2.insert(0, Car(cross, 'D', light_down))
         # move car and remove from list if move to end
         car_list1 = [car for car in car_list1 if (car.move() != -1)]
         car_list2 = [car for car in car_list2 if (car.move() != -1)]
@@ -87,6 +87,7 @@ def main():
         for car in car_list1:
             reward = reward - 1 if car.stopped else reward  # reward computation
             dist = light_right.posx - car.posx - 1
+            # NOTE logic here is based on car list is in sorted order from start pos to end pos
             if(dist < 0):
                 if st.ccp1 >= 9:
                     st.ccp1 = 9
