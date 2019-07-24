@@ -9,6 +9,7 @@ class Light:
         self.posx = 0  # position of light
         self.posy = 0
         self.color = "red"
+        self.delay = 0
         if(dir == 'D'):  # the light on move down road
             self.light = canvas.create_rectangle(gv.block_width+gv.road_width-gv.car_width, gv.block_width-gv.car_width,
                                                  gv.block_width+gv.road_width, gv.block_width,
@@ -28,12 +29,16 @@ class Light:
     def toGreen(self):
         self.canvas.itemconfig(self.light, fill="green")
         self.color = "green"
+        self.delay = 4
 
     def toRed(self):
         self.canvas.itemconfig(self.light, fill="red")
         self.color = "red"
+        self.delay = 4
 
     def switchColor(self):
+        if(self.delay != 0):
+            return
         if(self.color == "red"):
             self.toGreen()
         elif(self.color == "green"):
@@ -44,3 +49,6 @@ class Light:
             return False
         else:
             return True
+
+    def decrementDelay(self):
+        self.delay = self.delay-1 if self.delay > 0 else 0

@@ -10,6 +10,7 @@ class Car:
         self.posx = 0  # starting x-axis position of car
         self.posy = 0  # starting y-axis position of car
         self.light = light
+        self.stopped = False  # movable at beginning
         if(dir == 'D'):  # car moving down
             self.car = canvas.create_rectangle(gv.block_width+gv.road_width-gv.car_width, 0,
                                                gv.block_width+gv.road_width, gv.car_length,
@@ -34,9 +35,10 @@ class Car:
         nextx = self.posx + self.dx
         nexty = self.posy + self.dy
         total_road_units = gv.total_width/gv.unit
+        # destroy this car if moving out of boundary
         if(nextx > total_road_units or nexty > total_road_units or nextx < 0 or nexty < 0):
             gv.roadmap[self.posx, self.posy] = True
-            return -1  # destroy it while moving out of boundary
+            return -1
         if(gv.roadmap[nextx, nexty] and self.lightMoveable(nextx, nexty)):
             # if moveable, then move
             self.canvas.move(self.car, self.dx * gv.car_length,
@@ -46,8 +48,10 @@ class Car:
             self.posx += self.dx
             self.posy += self.dy
             gv.roadmap[self.posx, self.posy] = False
+            self.stopped = False  # movable
             return 1  # moved
-        # else do nothing
+
+        self.stopped = True  # unmovable
         return 0  # not moved
 
     def lightMoveable(self, nextx, nexty):
