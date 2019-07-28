@@ -26,7 +26,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(9, 9, 0, 1), True)
+    0.9, 0.1, 0.1, [0b00, 0b11], State(9, 9, 0, 1), True)
 
 
 def main():
@@ -64,7 +64,7 @@ def main():
 
     algorithm = FixedSwitch()
     # algorithm = qLearning  # select algorithm
-    while time_total < 10:  # training for some period of time
+    while time_total < 100:  # training for some period of time
 
         # switch based on policy action
         # get action a based on policy
@@ -142,12 +142,13 @@ def updateLightState(state):
 
 
 def takeAction(action):
-    if (action & 0b01 != 0):
+    # if (action & 0b01 != 0):
         # switch right light
+    if(action & 0b11 != 0):
         light_right.switchColor()
-    if (action & 0b10 != 0):
-        # switch down light
         light_down.switchColor()
+    # if (action & 0b10 != 0):
+    # switch down light
     light_right.decrementDelay()
     light_down.decrementDelay()
 
