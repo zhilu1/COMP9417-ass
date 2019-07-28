@@ -26,7 +26,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    0.9, 0.1, 0.1, [0b00, 0b11], State(9, 9, 0, 1), True)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0b00, 0b01], initial_state=State(9, 9, 0, 1), useFile=False)
 
 
 def main():
@@ -49,79 +49,91 @@ def main():
     global light_down
     light_right = Light(cross, 'R')
     light_down = Light(cross, 'D')
-    light_down.toGreen()
-    car_list1 = []  # to right cars list
-    car_list2 = []  # to down cars list
-    time_step = 0.01
-    st = State(9, 9, 0, 1)  # initialize a state
-    time_total = 0
+    time_step = 0.001
     end_time = 10
     # Keeps track of useful statistics
     stats = {
-        'time_step': [time_total],
-        'rewards': [0]
+        'episode': [0],
+        'rewardsSum': [0]
     }
+    car_list1 = []
+    car_list2 = []
+    # algorithm = FixedSwitch()
+    algorithm = qLearning  # select algorithm
+    for episode in range(100):
 
-    algorithm = FixedSwitch()
-    # algorithm = qLearning  # select algorithm
-    while time_total < 100:  # training for some period of time
-
-        # switch based on policy action
-        # get action a based on policy
-        # take action a
-        takeAction(algorithm.getAction())
-
-        # generating cars randomly
-        if(rnd.randint(0, 10) < 3):
-            car_list1.append(Car(cross, 'R', light_right))
-
-        if(rnd.randint(0, 10) < 3):
-            car_list2.append(Car(cross, 'D', light_down))
-        # move car and remove from list if move to end
-        car_list1 = [car for car in car_list1 if (car.move() != -1)]
-        car_list2 = [car for car in car_list2 if (car.move() != -1)]
-
-        reward = 0
-        # update state and calculating reward
-        st.ccp1 = 9
+        time_total = 0
+        st = State(9, 9, 0, 1)  # initialize a state
+        light_down.toGreen()
+        light_right.toRed()
+        rewards = 0
+        print("episode" + str(episode))
         for car in car_list1:
-            reward = reward - 1 if car.stopped else reward  # reward computation
-            dist = light_right.posx - car.posx - 1
-            if(dist < 0):
-                if st.ccp1 >= 9:
-                    st.ccp1 = 9
-                break
-            else:
-                st.ccp1 = dist
-        st.ccp2 = 9
+            car.destroy()
         for car in car_list2:
-            reward = reward - 1 if car.stopped else reward  # reward computation
-            dist = light_down.posy - car.posy - 1
-            if(dist < 0):
-                if st.ccp2 >= 9:
-                    st.ccp2 = 9
-                break
-            else:
-                st.ccp2 = dist
+            car.destroy()
+        car_list1 = []
+        car_list2 = []
+        while time_total < 1:  # training for some period of time
 
-        updateLightState(st)
+            # switch based on policy action
+            # get action a based on policy
+            # take action a
+            takeAction(algorithm.getAction())
 
-        # pass in reward and new state to improve policy and calculate Q
+            # generating cars randomly
+            if(rnd.randint(0, 10) < 2):
+                car_list1.insert(0, Car(cross, 'R', light_right))
 
-        algorithm.learn(reward, st)
+            if(rnd.randint(0, 10) < 2):
+                car_list2.insert(0, Car(cross, 'D', light_down))
+            # move car and remove from list if move to end
+            car_list1 = [car for car in car_list1 if (car.move() != -1)]
+            car_list2 = [car for car in car_list2 if (car.move() != -1)]
 
-        root.update()
-        time.sleep(time_step)
-        time_total += time_step
-        stats['time_step'].append(time_total)
-        stats['rewards'].append(reward)
+            reward = 0
+            # update state and calculating reward
+            st.ccp1 = 9
+            for car in car_list1:
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                dist = light_right.posx - car.posx - 1
+                # NOTE logic here is based on car list is in sorted order from start pos to end pos
+                if(dist < 0):
+                    if st.ccp1 >= 9:
+                        st.ccp1 = 9
+                    break
+                else:
+                    st.ccp1 = dist
+            st.ccp2 = 9
+            for car in car_list2:
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                dist = light_down.posy - car.posy - 1
+                if(dist < 0):
+                    if st.ccp2 >= 9:
+                        st.ccp2 = 9
+                    break
+                else:
+                    st.ccp2 = dist
+
+            updateLightState(st)
+
+            # pass in reward and new state to improve policy and calculate Q
+
+            algorithm.learn(reward, st)
+
+            root.update()
+            time.sleep(time_step)
+            time_total += time_step
+            rewards += reward
+        stats['episode'].append(episode)
+        stats['rewardsSum'].append(rewards)
         # print(time_total)  # DEBUG USE
 
     # finish training / execution
     algorithm.saveResult()
-    plt.plot(stats['time_step'], stats['rewards'])
-    plt.xlabel('Time')
-    plt.ylabel('Reward')
+    plt.plot(stats['episode'], stats['rewardsSum'])
+    plt.xlabel('Episode')
+    plt.ylabel('Reward Sum')
     plt.show()
     plt.savefig('plot' + type(algorithm).__name__)
 

@@ -36,13 +36,14 @@ class Qlearning:
         self.epsilon = epsilon
         self.action_space = action_space
         self.state = initial_state  # x = x0
+        self.useFile = useFile  # load Q table from file or not
         # TODO will it be better to use DataFrame or defaultdict
         self.Q = collections.defaultdict(
             lambda: np.zeros(len(self.action_space)))
         self.action = self.chooseActionByPolicy(self.state)
 
-    def createQTable(self, useFile):
-        if useFile:
+    def createQTable(self):
+        if self.useFile:
             return self.loadQtable()
         else:
             collections.defaultdict(
@@ -58,6 +59,7 @@ class Qlearning:
 
     def chooseActionByPolicy(self, state):
         # policy is getting the most rewarding action
+
         return np.argmax(self.Q[state])
 
     def learn(self, reward, newstate):

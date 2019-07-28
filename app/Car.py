@@ -37,7 +37,7 @@ class Car:
         total_road_units = gv.total_width/gv.unit
         # destroy this car if moving out of boundary
         if(nextx > total_road_units or nexty > total_road_units or nextx < 0 or nexty < 0):
-            gv.roadmap[self.posx, self.posy] = True
+            self.destroy()
             return -1
         if(gv.roadmap[nextx, nexty] and self.lightMoveable(nextx, nexty)):
             # if moveable, then move
@@ -50,9 +50,12 @@ class Car:
             gv.roadmap[self.posx, self.posy] = False
             self.stopped = False  # movable
             return 1  # moved
-
         self.stopped = True  # unmovable
         return 0  # not moved
 
     def lightMoveable(self, nextx, nexty):
         return self.light.checkMoveable(nextx, nexty)
+
+    def destroy(self):
+        self.canvas.delete(self.car)
+        gv.roadmap[self.posx, self.posy] = True
