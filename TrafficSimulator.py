@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from tkinter import *
+root = Tk()
 import time
 import random as rnd
 from app.Car import Car
@@ -21,7 +22,9 @@ class State:
         self.light_delay = 0
 
     def __str__(self):
-        return "State with ccp1 %d ccp2 %d light %d delay %d" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
+        # return "State with ccp1 %d ccp2 %d light %d delay %d" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
+        return "[%d %d %d %d]" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
+
 
 
 light_right = None
@@ -32,7 +35,7 @@ qLearning = Qlearning(
 
 def main():
     gv.init()
-    root = Tk()
+    # root = Tk()
     root.title('Traffic Light Simulator')
     # creating the roads
     cross = Canvas(root, width=gv.total_width,
@@ -127,8 +130,8 @@ def main():
                     st.ccp2 = dist
             if(st.ccp2 > 9):
                 st.ccp2 = 9
-
             updateLightState(st)
+            # print(st)
 
             # pass in reward and new state to improve policy and calculate Q
 
