@@ -75,6 +75,12 @@ class Qlearning:
         self.state = newstate
 
     def saveResult(self):
+        print(self.Q)
+        keys = self.Q.keys()
+        print(len(keys))
+        for key in keys:
+            print(key)
+            print(self.Q[key])
         np.save('qtable', np.array(dict(self.Q)))
         # with open('qtable.pkl', 'wb') as file:
         #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)

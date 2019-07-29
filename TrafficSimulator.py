@@ -14,19 +14,20 @@ import matplotlib.pyplot as plt
 
 class State:
     def __init__(self, closest_car_pos_road1,
-                 closest_car_pos_road2, light_setting1, light_setting2):
+                 closest_car_pos_road2, light_setting):
         self.ccp1 = closest_car_pos_road1  # road 1 is right to left
         self.ccp2 = closest_car_pos_road2  # road 2 is up to down
-        self.light_setting1 = light_setting1
-        self.light_setting2 = light_setting2
-        self.light_delay1 = 0
-        self.light_delay2 = 0
+        self.light_setting = light_setting
+        self.light_delay = 0
+
+    def __str__(self):
+        return "State with ccp1 %d ccp2 %d light %d delay %d" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
 
 
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0b00, 0b01], initial_state=State(9, 9, 0, 1), useFile=False)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 0), useFile=False)
 
 
 def main():
@@ -60,10 +61,11 @@ def main():
     car_list2 = []
     # algorithm = FixedSwitch()
     algorithm = qLearning  # select algorithm
-    for episode in range(100):
+    for episode in range(50):
 
+        current_time = 0
         time_total = 0
-        st = State(9, 9, 0, 1)  # initialize a state
+        st = State(9, 9, 0)  # initialize a state
         light_down.toGreen()
         light_right.toRed()
         rewards = 0
@@ -81,12 +83,18 @@ def main():
             # take action a
             takeAction(algorithm.getAction())
 
-            # generating cars randomly
-            if(rnd.randint(0, 10) < 2):
-                car_list1.insert(0, Car(cross, 'R', light_right))
-
-            if(rnd.randint(0, 10) < 2):
+            if current_time % (rnd.randint(1, 10) + 5) == 0:
+                # rand_num = rnd.random()
+                # if(rand_num > 0.9):
+                # car_list1.insert(0, Car(cross, 'R', light_right))
+                # else:
                 car_list2.insert(0, Car(cross, 'D', light_down))
+            # # generating cars randomly
+            # if(rnd.randint(0, 10) < 2):
+            #     car_list1.insert(0, Car(cross, 'R', light_right))
+
+            # if(rnd.randint(0, 10) < 2):
+            #     car_list2.insert(0, Car(cross, 'D', light_down))
             # move car and remove from list if move to end
             car_list1 = [car for car in car_list1 if (car.move() != -1)]
             car_list2 = [car for car in car_list2 if (car.move() != -1)]
@@ -97,6 +105,7 @@ def main():
             for car in car_list1:
                 reward = reward - 1 if car.stopped else reward  # reward computation
                 dist = light_right.posx - car.posx - 1
+                print(dist)
                 # NOTE logic here is based on car list is in sorted order from start pos to end pos
                 if(dist < 0):
                     if st.ccp1 >= 9:
@@ -108,12 +117,16 @@ def main():
             for car in car_list2:
                 reward = reward - 1 if car.stopped else reward  # reward computation
                 dist = light_down.posy - car.posy - 1
-                if(dist < 0):
-                    if st.ccp2 >= 9:
-                        st.ccp2 = 9
-                    break
-                else:
+                # print(dist)
+                # if(dist < 0):
+                # if st.ccp2 >= 9:
+                # st.ccp2 = 9
+                # break
+                # else:
+                if(st.ccp2 > dist and dist >= 0):
                     st.ccp2 = dist
+            if(st.ccp2 > 9):
+                st.ccp2 = 9
 
             updateLightState(st)
 
@@ -125,6 +138,7 @@ def main():
             time.sleep(time_step)
             time_total += time_step
             rewards += reward
+            current_time += 1
         stats['episode'].append(episode)
         stats['rewardsSum'].append(rewards)
         # print(time_total)  # DEBUG USE
@@ -139,14 +153,13 @@ def main():
 
 
 def updateLightState(state):
-    state.light_setting1 = 0
-    state.light_setting2 = 0
+    state.light_setting = 0
     if(light_right.color == "red"):
-        state.light_setting1 = 1
-    if(light_down.color == "red"):
-        state.light_setting2 = 1
-    state.light_delay1 = light_right.delay
-    state.light_delay2 = light_down.delay
+        state.light_setting = 1
+    # if(light_down.color == "red"):
+    #     state.light_setting2 = 1
+    state.light_delay = light_right.delay
+    # state.light_delay2 = light_down.delay
     # e.g 01 me first light green and second red. Future 2 means yellow
 
 # 0b01 means right light
@@ -156,7 +169,7 @@ def updateLightState(state):
 def takeAction(action):
     # if (action & 0b01 != 0):
         # switch right light
-    if(action & 0b11 != 0):
+    if(action == 1):
         light_right.switchColor()
         light_down.switchColor()
     # if (action & 0b10 != 0):

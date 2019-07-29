@@ -5,10 +5,10 @@ class FixedSwitch:
     def getAction(self):
         if self.steps >= 10:
             self.steps = 1
-            return 0b11  # switch both
+            return 1  # switch both
         else:
             self.steps += 1
-            return 0b00  # switch neither
+            return 0  # switch neither
 
     def learn(self, reward, newstate):
         # Fixed policy doesn't learn
