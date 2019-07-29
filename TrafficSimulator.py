@@ -1,16 +1,16 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 
+import matplotlib.pyplot as plt
+from app.Qlearning import Qlearning
+from app.FixedSwitch import FixedSwitch
+import app.GlobalVars as gv
+from app.Light import Light
+from app.Car import Car
+import random as rnd
+import time
 from tkinter import *
 root = Tk()
-import time
-import random as rnd
-from app.Car import Car
-from app.Light import Light
-import app.GlobalVars as gv
-from app.FixedSwitch import FixedSwitch
-from app.Qlearning import Qlearning
-import matplotlib.pyplot as plt
 
 
 class State:
@@ -24,7 +24,6 @@ class State:
     def __str__(self):
         # return "State with ccp1 %d ccp2 %d light %d delay %d" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
         return "[%d %d %d %d]" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
-
 
 
 light_right = None
@@ -108,14 +107,14 @@ def main():
             for car in car_list1:
                 reward = reward - 1 if car.stopped else reward  # reward computation
                 dist = light_right.posx - car.posx - 1
-                print(dist)
-                # NOTE logic here is based on car list is in sorted order from start pos to end pos
-                if(dist < 0):
-                    if st.ccp1 >= 9:
-                        st.ccp1 = 9
-                    break
-                else:
-                    st.ccp1 = dist
+                # print(dist)
+                # # NOTE logic here is based on car list is in sorted order from start pos to end pos
+                # if(dist < 0):
+                #     if st.ccp1 >= 9:
+                #         st.ccp1 = 9
+                #     break
+                # else:
+                #     st.ccp1 = dist
             st.ccp2 = 9
             for car in car_list2:
                 reward = reward - 1 if car.stopped else reward  # reward computation
@@ -151,6 +150,7 @@ def main():
     plt.plot(stats['episode'], stats['rewardsSum'])
     plt.xlabel('Episode')
     plt.ylabel('Reward Sum')
+    plt.title('plot' + type(algorithm).__name__)
     plt.show()
     plt.savefig('plot' + type(algorithm).__name__)
 

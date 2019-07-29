@@ -27,6 +27,7 @@ import numpy as np
 import pickle
 import collections
 import csv
+import copy
 
 
 class Qlearning:
@@ -38,19 +39,23 @@ class Qlearning:
         self.state = initial_state  # x = x0
         self.useFile = useFile  # load Q table from file or not
         # TODO will it be better to use DataFrame or defaultdict
-        self.Q = collections.defaultdict(
-            lambda: np.zeros(len(self.action_space)))
-        self.action = self.chooseActionByPolicy(self.state)
+        self.Q = self.createQTable()
+        # self.Q = collections.defaultdict(
+        #     lambda: np.zeros(len(self.action_space)))
+        self.action = 0
 
     def createQTable(self):
         if self.useFile:
             return self.loadQtable()
         else:
-            collections.defaultdict(
+            return collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
 
     def getAction(self):
         # use epsilon greedy policy in execution
+        if(self.state.light_delay != 0):
+            self.action = 0
+            return self.action
         if(np.random.rand() < self.epsilon):
             self.action = np.random.choice(self.action_space)
         else:
@@ -60,7 +65,9 @@ class Qlearning:
     def chooseActionByPolicy(self, state):
         # policy is getting the most rewarding action
 
-        return np.argmax(self.Q[state])
+        state_str = str(state)
+        actions_prop = self.Q[state_str]
+        return np.argmax(actions_prop)
 
     def learn(self, reward, newstate):
         # get newaction using original policy
@@ -75,28 +82,29 @@ class Qlearning:
             (reward + self.discount_factor *
              self.Q[newstate_str][newaction] - self.Q[state_str][self.action])
         # update state to new state
-        self.state = newstate
+        self.state = copy.deepcopy(newstate)
         # print("222222", self.state)
-        print(self.Q)
+        # print(self.Q)
 
     def saveResult(self):
         print(self.Q)
         keys = self.Q.keys()
         print(len(keys))
-        for key in keys:
-            print(key,end='')
+        for key in sorted(keys):
+            print(key, end='')
             print(self.Q[key])
-        np.save('qtable', np.array(dict(self.Q)))
+        np.save('qtable' + 'self.epsilon' + '.npy', np.array(dict(self.Q)))
         # with open('qtable.pkl', 'wb') as file:
         #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     def loadQtable(self):
         # load Q table from file if file exists
         try:
-            P = np.load('qtable.npy')
-            self.Q = collections.defaultdict(
+            P = np.load('qtable' + 'self.epsilon' + '.npy', allow_pickle=True)
+            Q = collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
-            self.Q.update(P.item())
+            Q.update(P.item())
+            return Q
         except (OSError, IOError) as e:
             # if file not exists or error in loading, create an empty defaultdict
             return collections.defaultdict(lambda: np.zeros(len(self.action_space)))
