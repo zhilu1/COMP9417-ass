@@ -68,18 +68,23 @@ class Qlearning:
 
         # update Q table, which is improving the algorithm
         # Q(x,a) = Q(x,a) + learningRate* (reward + discountFactor*Q(newState, newAction) - Q(x,a))
-        self.Q[self.state][self.action] += self.learning_rate * \
+        # print("111111",self.state)
+        state_str = str(self.state)
+        newstate_str = str(newstate)
+        self.Q[state_str][self.action] += self.learning_rate * \
             (reward + self.discount_factor *
-             self.Q[newstate][newaction] - self.Q[self.state][self.action])
+             self.Q[newstate_str][newaction] - self.Q[state_str][self.action])
         # update state to new state
         self.state = newstate
+        # print("222222", self.state)
+        print(self.Q)
 
     def saveResult(self):
         print(self.Q)
         keys = self.Q.keys()
         print(len(keys))
         for key in keys:
-            print(key)
+            print(key,end='')
             print(self.Q[key])
         np.save('qtable', np.array(dict(self.Q)))
         # with open('qtable.pkl', 'wb') as file:
