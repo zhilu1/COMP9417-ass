@@ -27,7 +27,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(9, 9, 0, 1), True)
+    0.9, 0.1, 0.1, [0b00, 0b10, 0b01, 0b11], State(9, 9, 0, 1), False)
 
 
 def main():
@@ -56,9 +56,9 @@ def main():
     time_step = 0.001
     st = State(9, 9, 0, 1)  # initialize a state
     time_total = 0
-    end_time = 10
+    end_time = 20
     current_time = 0
-    time_stamp = 500
+    time_stamp = 1000
     # Keeps track of useful statistics
     stats = {
         'time_step': [time_total],
@@ -67,6 +67,7 @@ def main():
 
     # algorithm = FixedSwitch()
     algorithm = qLearning  # select algorithm
+    algorithm.createQTable()
     while time_total < end_time:  # training for some period of time
         current_time = 0
         avg_time_list = []
@@ -78,9 +79,9 @@ def main():
             takeAction(algorithm.getAction())
 
             # generating cars randomly 
-            if current_time % (rnd.randint(10) + 5) == 0:
+            if current_time % (rnd.randint(1,10) + 5) == 0:
                 rand_num = rnd.random()
-                if(rand_num > 0.5):
+                if(rand_num > 0.9):
                     car_list1.insert(0, Car(cross, 'R', light_right))
                 else:
                     car_list2.insert(0, Car(cross, 'D', light_down))
