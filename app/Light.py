@@ -25,30 +25,61 @@ class Light:
                                                  )
             self.posx = int((gv.block_width-gv.car_length)/gv.unit)
             self.posy = int((gv.block_width)/gv.unit)
+        elif(dir == 'L'):  # the light on move left road
+            self.light = canvas.create_rectangle(gv.block_width+gv.road_width, gv.block_width+gv.road_width-gv.car_width,
+                                                 gv.block_width+gv.road_width+gv.car_length, gv.block_width + gv.road_width,
+                                                 fill="red"
+                                                 )
+            self.posx = int((gv.block_width+gv.road_width)/gv.unit)
+            self.posy = int(
+                (gv.block_width+gv.road_width-gv.car_width)/gv.unit)
+        elif(dir == 'U'):  # the light on move left road
+            self.light = canvas.create_rectangle(gv.block_width, gv.block_width+gv.road_width,
+                                                 gv.block_width+gv.car_width, gv.block_width + gv.road_width + gv.car_length,
+                                                 fill="red"
+                                                 )
+            self.posx = int((gv.block_width)/gv.unit)
+            self.posy = int(
+                (gv.block_width+gv.road_width)/gv.unit)
 
     def toGreen(self):
         self.canvas.itemconfig(self.light, fill="green")
         self.color = "green"
-        self.delay = 4
+        self.delay = 0  # can switch immediately while been green
 
     def toRed(self):
         self.canvas.itemconfig(self.light, fill="red")
         self.color = "red"
-        self.delay = 4
+        self.delay = 0  # can switch immediately while been red
+
+    def toAmber(self):
+        self.canvas.itemconfig(self.light, fill="yellow")
+        self.color = "yellow"
 
     def switchColor(self):
         if(self.delay != 0):
             return
-        if(self.color == "red"):
-            self.toGreen()
-        elif(self.color == "green"):
-            self.toRed()
+        self.delay = 5  # road width + 1 + 1
+        if(self.color == "green"):
+            self.toAmber()  # green can immediately change to amber
+        # elif(self.color == "green"):
+        #     self.toAmber()  # green will become amber before being red
+        # else:
+        #
 
     def checkMoveable(self, nextx, nexty):
-        if(self.posx == nextx and self.posy == nexty and self.color == "red"):
+        if(self.posx == nextx and self.posy == nexty and self.color != "green"):
             return False
         else:
             return True
 
     def decrementDelay(self):
+        if(self.delay == 1):
+            if(self.color == "yellow"):
+                self.toRed()
+            elif(self.color == "red"):
+                self.toGreen()
+            else:
+                raise Exception("Light state Invaild")
         self.delay = self.delay-1 if self.delay > 0 else 0
+        # amber light lasts for the time same as car go through intersection

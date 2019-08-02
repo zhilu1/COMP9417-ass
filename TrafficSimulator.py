@@ -15,21 +15,25 @@ root = Tk()
 
 class State:
     def __init__(self, closest_car_pos_road1,
-                 closest_car_pos_road2, light_setting):
+                 closest_car_pos_road2, closest_car_pos_road3, closest_car_pos_road4, light_setting):
         self.ccp1 = closest_car_pos_road1  # road 1 is right to left
         self.ccp2 = closest_car_pos_road2  # road 2 is up to down
+        self.ccp3 = closest_car_pos_road3  # road 3 is left to right
+        self.ccp4 = closest_car_pos_road4  # road 4 is down to up
         self.light_setting = light_setting
         self.light_delay = 0
 
     def __str__(self):
         # return "State with ccp1 %d ccp2 %d light %d delay %d" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
-        return "[%d %d %d %d]" % (self.ccp1, self.ccp2, self.light_setting, self.light_delay)
+        return "[%d %d %d %d %d %d]" % (self.ccp1, self.ccp2, self.ccp3, self.ccp4, self.light_setting, self.light_delay)
 
 
 light_right = None
 light_down = None
+light_left = None
+light_up = None
 qLearning = Qlearning(
-    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 1), useFile=True)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 9, 9, 1), useFile=False)
 
 
 def main():
@@ -50,8 +54,12 @@ def main():
     cross.pack()
     global light_right
     global light_down
+    global light_left
+    global light_up
     light_right = Light(cross, 'R')
     light_down = Light(cross, 'D')
+    light_left = Light(cross, 'L')
+    light_up = Light(cross, 'U')
     time_step = 0.001
     end_time = 10
     # Keeps track of useful statistics
@@ -63,27 +71,38 @@ def main():
         'training': [0],
         'totalReward': [0]
     }
-    car_list1 = []
-    car_list2 = []
-    algorithm = FixedSwitch()
-    # algorithm = qLearning  # select algorithm
+    car_list_right = []
+    car_list_down = []
+    car_list_left = []
+    car_list_up = []
+    # algorithm = FixedSwitch()
+    algorithm = qLearning  # select algorithm
     # for training in range(10):
     #     total_reward = 0
-    for episode in range(50):
+    for episode in range(500):
 
         current_time = 0
         time_total = 0
-        st = State(9, 9, 1)  # initialize a state
+        st = State(9, 9, 9, 9, 1)  # initialize a state
         light_down.toGreen()
+        light_up.toGreen()
         light_right.toRed()
+        light_left.toRed()
         rewards = 0
         print("episode" + str(episode))
-        for car in car_list1:
+        # clean up all cars
+        for car in car_list_right:
             car.destroy()
-        for car in car_list2:
+        for car in car_list_down:
             car.destroy()
-        car_list1 = []
-        car_list2 = []
+        for car in car_list_left:
+            car.destroy()
+        for car in car_list_up:
+            car.destroy()
+        car_list_right = []
+        car_list_down = []
+        car_list_left = []
+        car_list_up = []
         while time_total < 1:  # training for some period of time
 
             # switch based on policy action
@@ -92,26 +111,38 @@ def main():
             takeAction(algorithm.getAction())
 
             if current_time % (rnd.randint(1, 5) + 5) == 0:
+                # only one or zero car can appear at one timestep
                 rand_num = rnd.random()
-                if(rand_num > 0.5):
-                    car_list1.append(Car(cross, 'R', light_right))
+                if(rand_num > 0.75):
+                    car_list_right.append(Car(cross, 'R', light_right))
+                elif(rand_num > 0.5):
+                    car_list_left.append(Car(cross, 'L', light_left))
+                elif(rand_num > 0.25):
+                    car_list_up.append(Car(cross, 'U', light_up))
                 else:
-                    car_list2.append(Car(cross, 'D', light_down))
+                    car_list_down.append(Car(cross, 'D', light_down))
             # # generating cars randomly
             # if(rnd.randint(0, 10) < 2):
-            #     car_list1.insert(0, Car(cross, 'R', light_right))
+            #     car_list_right.insert(0, Car(cross, 'R', light_right))
 
             # if(rnd.randint(0, 10) < 2):
-            #     car_list2.insert(0, Car(cross, 'D', light_down))
+            #     car_list_down.insert(0, Car(cross, 'D', light_down))
             # move car and remove from list if move to end
-            car_list1 = [car for car in car_list1 if (car.move() != -1)]
-            car_list2 = [car for car in car_list2 if (car.move() != -1)]
+            # car_list_right = [
+            #     car for car in car_list_right if (car.move() != -1)]
+            # car_list_down = [
+            #     car for car in car_list_down if (car.move() != -1)]
+            # car_list3 = [car for car in car_list_left if (car.move() != -1)]
+            # car_list4 = [car for car in car_list_up if (car.move() != -1)]
+
+            moveCars(car_list_down)
+            moveCars(car_list_left)
+            moveCars(car_list_up)
+            moveCars(car_list_right)
 
             reward = 0
-            # car_stopped = 0
-            # update state and calculating reward
             st.ccp1 = 9
-            for car in car_list1:
+            for car in car_list_right:
                 # reward = reward - 1 if car.stopped else reward  # reward computation
                 if car.stopped:
                     reward = -1
@@ -120,8 +151,9 @@ def main():
                     st.ccp1 = dist
             if(st.ccp1 > 9):
                 st.ccp1 = 9
+
             st.ccp2 = 9
-            for car in car_list2:
+            for car in car_list_down:
                 # reward = reward - 1 if car.stopped else reward  # reward computation
                 if car.stopped:
                     reward = -1
@@ -130,6 +162,28 @@ def main():
                     st.ccp2 = dist
             if(st.ccp2 > 9):
                 st.ccp2 = 9
+
+            st.ccp3 = 9
+            for car in car_list_left:
+                # reward = reward - 1 if car.stopped else reward  # reward computation
+                if car.stopped:
+                    reward = -1
+                dist = car.posx - light_left.posx - 1
+                if(st.ccp3 > dist and dist >= 0):
+                    st.ccp3 = dist
+            if(st.ccp3 > 9):
+                st.ccp3 = 9
+
+            st.ccp4 = 9
+            for car in car_list_up:
+                # reward = reward - 1 if car.stopped else reward  # reward computation
+                if car.stopped:
+                    reward = -1
+                dist = car.posy - light_up.posy - 1
+                if(st.ccp4 > dist and dist >= 0):
+                    st.ccp4 = dist
+            if(st.ccp4 > 9):
+                st.ccp4 = 9
             updateLightState(st)
 
             # print(st)
@@ -164,7 +218,7 @@ def main():
 
 def updateLightState(state):
     state.light_setting = 0
-    if(light_right.color == "red"):
+    if(light_right.color != "green"):
         state.light_setting = 1
     # if(light_down.color == "red"):
     #     state.light_setting2 = 1
@@ -176,16 +230,24 @@ def updateLightState(state):
 # 0b10 means down light
 
 
+def moveCars(car_list):
+    car_list = [car for car in car_list if (car.move() != -1)]
+
+
 def takeAction(action):
     # if (action & 0b01 != 0):
         # switch right light
     if(action == 1):
         light_right.switchColor()
         light_down.switchColor()
+        light_left.switchColor()
+        light_up.switchColor()
     # if (action & 0b10 != 0):
     # switch down light
     light_right.decrementDelay()
     light_down.decrementDelay()
+    light_left.decrementDelay()
+    light_up.decrementDelay()
 
 
 if __name__ == "__main__":

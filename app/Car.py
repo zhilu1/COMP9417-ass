@@ -28,6 +28,23 @@ class Car:
             self.dx = 1
             self.posx = 0
             self.posy = int(gv.block_width / gv.unit)
+        elif(dir == 'L'):  # car moving right
+            self.car = canvas.create_rectangle(gv.total_width - gv.car_length, gv.block_width+gv.road_width-gv.car_width,
+                                               gv.total_width, gv.block_width + gv.road_width,
+                                               fill="light blue"
+                                               )
+            self.dx = -1
+            self.posx = int((gv.total_width - gv.car_length) / gv.unit)
+            self.posy = int((gv.block_width+gv.road_width -
+                             gv.car_width) / gv.unit)
+        elif(dir == 'U'):  # car moving right
+            self.car = canvas.create_rectangle(gv.block_width, gv.total_width - gv.car_length,
+                                               gv.block_width+gv.car_width, gv.total_width,
+                                               fill="orange"
+                                               )
+            self.dy = -1
+            self.posx = int(gv.block_width / gv.unit)
+            self.posy = int((gv.total_width - gv.car_length) / gv.unit)
         gv.roadmap[self.posx, self.posy] = False
 
     def move(self):

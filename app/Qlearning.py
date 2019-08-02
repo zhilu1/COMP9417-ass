@@ -74,7 +74,7 @@ class Qlearning:
         #     self.action = self.chooseActionByPolicy(self.state)
         # return self.action
 
-    def chooseActionByPolicy(self, state):
+    def getBestNextAction(self, state):
         # policy is getting the most rewarding action
         if(state.light_delay != 0):
             # cannot switch
@@ -85,7 +85,7 @@ class Qlearning:
 
     def learn(self, reward, newstate):
         # get newaction using original policy
-        newaction = self.chooseActionByPolicy(newstate)
+        best_next_action = self.getBestNextAction(newstate)
         state_str = str(self.state)
         newstate_str = str(newstate)
         # if(newstate.light_delay != 0):
@@ -98,7 +98,7 @@ class Qlearning:
         # print("111111",self.state)
 
         delta = (reward + self.discount_factor *
-                 self.Q[newstate_str][newaction] - self.Q[state_str][self.action])
+                 self.Q[newstate_str][best_next_action] - self.Q[state_str][self.action])
         self.Q[state_str][self.action] += self.learning_rate * delta
 
         # update state to new state
