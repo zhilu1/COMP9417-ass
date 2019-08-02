@@ -102,9 +102,9 @@ class Qlearning:
         keys = self.Q.keys()
         # print(len(keys))
         for key in sorted(keys):
-            # print(key, end='')
-            # print(self.Q[key])
-            np.save('qtable' + 'self.epsilon' + '.npy', np.array(dict(self.Q)))
+            print(key, end='')
+            print(self.Q[key])
+            # np.save('qtable' + 'self.epsilon' + '.npy', np.array(dict(self.Q)))
             # with open('qtable.pkl', 'wb') as file:
             #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)
 
