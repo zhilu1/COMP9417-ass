@@ -29,7 +29,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 1), useFile=False)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 1), useFile=True)
 
 
 def main():
@@ -56,8 +56,8 @@ def main():
     end_time = 10
     # Keeps track of useful statistics
     stats = {
-        'episode': [0],
-        'rewardsSum': [0]
+        'episode': [],
+        'rewardsSum': []
     }
     total_stats = {
         'training': [0],
@@ -65,11 +65,11 @@ def main():
     }
     car_list1 = []
     car_list2 = []
-    # algorithm = FixedSwitch()
-    algorithm = qLearning  # select algorithm
+    algorithm = FixedSwitch()
+    # algorithm = qLearning  # select algorithm
     # for training in range(10):
     #     total_reward = 0
-    for episode in range(100):
+    for episode in range(50):
 
         current_time = 0
         time_total = 0
@@ -158,8 +158,8 @@ def main():
     plt.xlabel('Episode')
     plt.ylabel('Reward Sum')
     plt.title('plot' + type(algorithm).__name__)
+    plt.savefig('plot' + type(algorithm).__name__)
     plt.show()
-    # plt.savefig('plot' + type(algorithm).__name__)
 
 
 def updateLightState(state):

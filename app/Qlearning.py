@@ -28,6 +28,7 @@ import pickle
 import collections
 import csv
 import copy
+import json
 
 
 class Qlearning:
@@ -75,7 +76,9 @@ class Qlearning:
 
     def chooseActionByPolicy(self, state):
         # policy is getting the most rewarding action
-
+        if(state.light_delay != 0):
+            # cannot switch
+            return 0
         state_str = str(state)
         actions_prop = self.Q[state_str]
         return np.argmax(actions_prop)
@@ -83,12 +86,17 @@ class Qlearning:
     def learn(self, reward, newstate):
         # get newaction using original policy
         newaction = self.chooseActionByPolicy(newstate)
+        state_str = str(self.state)
+        newstate_str = str(newstate)
+        # if(newstate.light_delay != 0):
+        #     self.Q[newstate_str][1] = -999
+        # if(self.state.light_delay != 0):
+        #     self.Q[state_str][1] = -999
 
         # update Q table, which is improving the algorithm
         # Q(x,a) = Q(x,a) + learningRate* (reward + discountFactor*Q(newState, newAction) - Q(x,a))
         # print("111111",self.state)
-        state_str = str(self.state)
-        newstate_str = str(newstate)
+
         delta = (reward + self.discount_factor *
                  self.Q[newstate_str][newaction] - self.Q[state_str][self.action])
         self.Q[state_str][self.action] += self.learning_rate * delta
@@ -100,18 +108,21 @@ class Qlearning:
     def saveResult(self):
         # print(self.Q)
         keys = self.Q.keys()
+        if self.useFile:
+            np.save('qtable' +
+                    '.npy', np.array(dict(self.Q)))
         # print(len(keys))
-        for key in sorted(keys):
-            print(key, end='')
-            print(self.Q[key])
-            # np.save('qtable' + 'self.epsilon' + '.npy', np.array(dict(self.Q)))
-            # with open('qtable.pkl', 'wb') as file:
-            #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)
+        with open('qtable.txt', 'w') as file:
+            for key in sorted(keys):
+                file.write(str(key))
+                file.write(str(self.Q[key]) + '\n')
+
+                # file.write(json.dumps(self.Q))
 
     def loadQtable(self):
         # load Q table from file if file exists
         try:
-            P = np.load('qtable' + 'self.epsilon' + '.npy', allow_pickle=True)
+            P = np.load('qtable' + '.npy', allow_pickle=True)
             Q = collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
             Q.update(P.item())
