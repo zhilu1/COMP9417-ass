@@ -112,7 +112,7 @@ class Qlearning:
             np.save('qtable' +
                     '.npy', np.array(dict(self.Q)))
         # print(len(keys))
-        with open('qtable.txt', 'w') as file:
+        with open('Qlearning Table.txt', 'w') as file:
             for key in sorted(keys):
                 file.write(str(key))
                 file.write(str(self.Q[key]) + '\n')

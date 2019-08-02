@@ -7,6 +7,7 @@ from app.Light import Light
 import app.GlobalVars as gv
 from app.FixedSwitch import FixedSwitch
 from app.Qlearning import Qlearning
+from app.Qlearning_Sarsa import Sarsa
 import matplotlib.pyplot as plt
 from tkinter import *
 root = Tk()
@@ -31,6 +32,8 @@ light_right = None
 light_down = None
 qLearning = Qlearning(
     discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 1, 0), useFile=False)
+sarsa = Sarsa(discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[
+              0, 1], initial_state=State(9, 9, 1, 0), useFile=False)
 
 
 def main():
@@ -67,10 +70,11 @@ def main():
     car_list1 = []
     car_list2 = []
     # algorithm = FixedSwitch()
-    algorithm = qLearning  # select algorithm
+    # algorithm = qLearning  # select algorithm
+    algorithm = sarsa  # select algorithm
     # for training in range(10):
     #     total_reward = 0
-    for episode in range(100):
+    for episode in range(50):
 
         current_time = 0
         time_total = 0
@@ -93,11 +97,11 @@ def main():
             takeAction(algorithm.getAction())
 
             if current_time % (rnd.randint(1, 5) + 5) == 0:
-                rand_num = rnd.random()
-                if(rand_num > 0.5):
-                    car_list1.append(Car(cross, 'R', light_right))
-                else:
-                    car_list2.append(Car(cross, 'D', light_down))
+                # rand_num = rnd.random()
+                # if(rand_num > 0.5):
+                #     car_list1.append(Car(cross, 'R', light_right))
+                # else:
+                car_list2.append(Car(cross, 'D', light_down))
             # # generating cars randomly
             # if(rnd.randint(0, 10) < 2):
             #     car_list1.insert(0, Car(cross, 'R', light_right))
