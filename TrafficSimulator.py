@@ -1,23 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import time
+import random as rnd
+from app.Car import Car
+from app.Light import Light
+import app.GlobalVars as gv
+from app.FixedSwitch import FixedSwitch
+from app.Qlearning import Qlearning
+import matplotlib.pyplot as plt
 from tkinter import *
 root = Tk()
-import matplotlib.pyplot as plt
 
 #from app.Qlearning import Qlearning
-from app.Qlearning_DF import Qlearning
-from app.FixedSwitch import FixedSwitch
-import app.GlobalVars as gv
-from app.Light import Light
-from app.Car import Car
-import random as rnd
-import time
-
 
 
 class State:
     def __init__(self, closest_car_pos_road1,
-                 closest_car_pos_road2, light_setting,light_delay):
+                 closest_car_pos_road2, light_setting, light_delay):
         self.ccp1 = closest_car_pos_road1  # road 1 is right to left
         self.ccp2 = closest_car_pos_road2  # road 2 is up to down
         self.light_setting = light_setting
@@ -31,7 +30,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 0, 0), useFile = False)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 0, 0), useFile=False)
 
 
 def main():
@@ -58,14 +57,20 @@ def main():
     end_time = 10
     # Keeps track of useful statistics
     stats = {
-        'episode': [0],
-        'rewardsSum': [0]
+        'episode': [],
+        'rewardsSum': []
+    }
+    total_stats = {
+        'training': [0],
+        'totalReward': [0]
     }
     car_list1 = []
     car_list2 = []
     # algorithm = FixedSwitch()
     algorithm = qLearning  # select algorithm
-    for episode in range(50):
+    # for training in range(10):
+    #     total_reward = 0
+    for episode in range(100):
 
         current_time = 0
         time_total = 0
@@ -84,69 +89,57 @@ def main():
 
             # switch based on policy action
             # get action a based on policy
-        
-            action = algorithm.getAction(st) # action =1: switch the light
-            takeAction(action)
-            
-            # insert the new car
-            if current_time % (rnd.randint(1, 10) + 5) == 0:
-                # rand_num = rnd.random()
-                # if(rand_num > 0.9):
-                # car_list1.insert(0, Car(cross, 'R', light_right))
-                # else:
-                car_list2.insert(0, Car(cross, 'D', light_down))
+            # take action a
+            takeAction(algorithm.getAction())
+
+            if current_time % (rnd.randint(1, 5) + 5) == 0:
+                rand_num = rnd.random()
+                if(rand_num > 0.5):
+                    car_list1.append(Car(cross, 'R', light_right))
+                else:
+                    car_list2.append(Car(cross, 'D', light_down))
             # # generating cars randomly
             # if(rnd.randint(0, 10) < 2):
             #     car_list1.insert(0, Car(cross, 'R', light_right))
 
             # if(rnd.randint(0, 10) < 2):
             #     car_list2.insert(0, Car(cross, 'D', light_down))
-            
-            
+
             # move car and remove from list if move to end
             car_list1 = [car for car in car_list1 if (car.move() != -1)]
             car_list2 = [car for car in car_list2 if (car.move() != -1)]
-            
-            
-            
+
             reward = 0
+            # car_stopped = 0
             # update state and calculating reward
-            new_st = State(9,9,0,0)
 #            new_st.ccp1 = 9
             for car in car_list1:
                 reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                # reward = -1
                 dist = light_right.posx - car.posx - 1
-                # print(dist)
-                # # NOTE logic here is based on car list is in sorted order from start pos to end pos
-                if(new_st.ccp1 > dist and dist >= 0):
-                    new_st.ccp1 = dist
-            if(new_st.ccp1 > 9):
-                new_st.ccp1 = 9
-                
-#            new_st.ccp2 = 9
+                if(st.ccp1 > dist and dist >= 0):
+                    st.ccp1 = dist
+            if(st.ccp1 > 9):
+                st.ccp1 = 9
+            st.ccp2 = 9
             for car in car_list2:
                 reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                # reward = -1
                 dist = light_down.posy - car.posy - 1
-                # print(dist)
-                # if(dist < 0):
-                # if st.ccp2 >= 9:
-                # st.ccp2 = 9
-                # break
-                # else:
-                if(new_st.ccp2 > dist and dist >= 0):
-                    new_st.ccp2 = dist
-            if(new_st.ccp2 > 9):
-                new_st.ccp2 = 9
-                
-            updateLightState(new_st)
+                if(st.ccp2 > dist and dist >= 0):
+                    st.ccp2 = dist
+            if(st.ccp2 > 9):
+                st.ccp2 = 9
+            updateLightState(st)
+
             # print(st)
 
             # pass in reward and new state to improve policy and calculate Q
-            algorithm.learn(action, reward, str(st), str(new_st))
-            st = new_st
+            algorithm.learn(reward, st)
 
             root.update()
-            time.sleep(time_step)
             time_total += time_step
             rewards += reward
             current_time += 1
@@ -155,13 +148,13 @@ def main():
         # print(time_total)  # DEBUG USE
 
     # finish training / execution
-    algorithm.saveQtable()
+    algorithm.saveResult()
     plt.plot(stats['episode'], stats['rewardsSum'])
     plt.xlabel('Episode')
     plt.ylabel('Reward Sum')
     plt.title('plot' + type(algorithm).__name__)
-    plt.show()
     plt.savefig('plot' + type(algorithm).__name__)
+    plt.show()
 
 
 def updateLightState(state):
@@ -173,7 +166,6 @@ def updateLightState(state):
     state.light_delay = light_right.delay
     # state.light_delay2 = light_down.delay
     # e.g 01 me first light green and second red. Future 2 means yellow
-
 
 
 def takeAction(action):
