@@ -27,6 +27,8 @@ import numpy as np
 import pickle
 import collections
 import csv
+import copy
+import json
 
 
 class Qlearning:
@@ -38,53 +40,114 @@ class Qlearning:
         self.state = initial_state  # x = x0
         self.useFile = useFile  # load Q table from file or not
         # TODO will it be better to use DataFrame or defaultdict
-        self.Q = collections.defaultdict(
-            lambda: np.zeros(len(self.action_space)))
-        self.action = self.chooseActionByPolicy(self.state)
+        self.Q = self.createQTable()
+        # self.Q = collections.defaultdict(
+        #     lambda: np.zeros(len(self.action_space)))
+        self.action = 0
+        self.policy = self.createEpsilonGreedyPolicy()
 
     def createQTable(self):
         if self.useFile:
             return self.loadQtable()
         else:
-            collections.defaultdict(
+            return collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
 
     def getAction(self):
         # use epsilon greedy policy in execution
-        if(np.random.rand() < self.epsilon):
-            self.action = np.random.choice(self.action_space)
-        else:
-            self.action = self.chooseActionByPolicy(self.state)
+        if(self.state.light_delay != 0):
+            self.action = 0
+            return self.action
+        # get probabilities of all actions from current state
+        state = str(self.state)
+        action_probabilities = self.policy(state)
+
+        # choose action according to
+        # the probability distribution
+        self.action = np.random.choice(np.arange(
+            len(action_probabilities)),
+            p=action_probabilities)
         return self.action
+        # if(np.random.rand() < self.epsilon):
+        #     self.action = np.random.choice(self.action_space)
+        # else:
+        #     self.action = self.chooseActionByPolicy(self.state)
+        # return self.action
 
     def chooseActionByPolicy(self, state):
         # policy is getting the most rewarding action
-        return np.argmax(self.Q[state])
+        if(state.light_delay != 0):
+            # cannot switch
+            return 0
+        state_str = str(state)
+        actions_prop = self.Q[state_str]
+        return np.argmax(actions_prop)
 
     def learn(self, reward, newstate):
         # get newaction using original policy
         newaction = self.chooseActionByPolicy(newstate)
+        state_str = str(self.state)
+        newstate_str = str(newstate)
+        # if(newstate.light_delay != 0):
+        #     self.Q[newstate_str][1] = -999
+        # if(self.state.light_delay != 0):
+        #     self.Q[state_str][1] = -999
 
         # update Q table, which is improving the algorithm
         # Q(x,a) = Q(x,a) + learningRate* (reward + discountFactor*Q(newState, newAction) - Q(x,a))
-        self.Q[self.state][self.action] += self.learning_rate * \
-            (reward + self.discount_factor *
-             self.Q[newstate][newaction] - self.Q[self.state][self.action])
+        # print("111111",self.state)
+
+        delta = (reward + self.discount_factor *
+                 self.Q[newstate_str][newaction] - self.Q[state_str][self.action])
+        self.Q[state_str][self.action] += self.learning_rate * delta
+
         # update state to new state
-        self.state = newstate
+        self.state = copy.deepcopy(newstate)
+        # print("222222", self.state)
 
     def saveResult(self):
-        np.save('qtable', np.array(dict(self.Q)))
-        # with open('qtable.pkl', 'wb') as file:
-        #     pickle.dump(self.Q, file, protocol=pickle.HIGHEST_PROTOCOL)
+        # print(self.Q)
+        keys = self.Q.keys()
+        if self.useFile:
+            np.save('qtable' +
+                    '.npy', np.array(dict(self.Q)))
+        # print(len(keys))
+        with open('qtable.txt', 'w') as file:
+            for key in sorted(keys):
+                file.write(str(key))
+                file.write(str(self.Q[key]) + '\n')
+
+                # file.write(json.dumps(self.Q))
 
     def loadQtable(self):
         # load Q table from file if file exists
         try:
-            P = np.load('qtable.npy')
-            self.Q = collections.defaultdict(
+            P = np.load('qtable' + '.npy', allow_pickle=True)
+            Q = collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
-            self.Q.update(P.item())
+            Q.update(P.item())
+            return Q
         except (OSError, IOError) as e:
             # if file not exists or error in loading, create an empty defaultdict
             return collections.defaultdict(lambda: np.zeros(len(self.action_space)))
+
+    def createEpsilonGreedyPolicy(self):
+        """ 
+        Creates an epsilon-greedy policy based 
+        on a given Q-function and epsilon. 
+
+        Returns a function that takes the state 
+        as an input and returns the probabilities 
+        for each action in the form of a numpy array  
+        of length of the action space(set of possible actions). 
+        """
+        def policyFunction(state):
+            num_actions = len(self.action_space)
+            Action_probabilities = np.ones(num_actions,
+                                           dtype=float) * self.epsilon / num_actions
+
+            best_action = np.argmax(self.Q[state])
+            Action_probabilities[best_action] += (1.0 - self.epsilon)
+            return Action_probabilities
+
+        return policyFunction
