@@ -30,7 +30,7 @@ class State:
 light_right = None
 light_down = None
 qLearning = Qlearning(
-    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 0, 0), useFile=False)
+    discount_factor=0.9, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 1, 0), useFile=False)
 
 
 def main():
@@ -74,7 +74,7 @@ def main():
 
         current_time = 0
         time_total = 0
-        st = State(9, 9, 0, 0)  # initialize a state
+        st = State(9, 9, 1, 0)  # initialize a state
         light_down.toGreen()
         light_right.toRed()
         rewards = 0
@@ -114,9 +114,9 @@ def main():
             # update state and calculating reward
 #            new_st.ccp1 = 9
             for car in car_list1:
-                reward = reward - 1 if car.stopped else reward  # reward computation
-                # if car.stopped:
-                # reward = -1
+                # reward = reward - 1 if car.stopped else reward  # reward computation
+                if car.stopped:
+                    reward = -1
                 dist = light_right.posx - car.posx - 1
                 if(st.ccp1 > dist and dist >= 0):
                     st.ccp1 = dist
@@ -124,9 +124,9 @@ def main():
                 st.ccp1 = 9
             st.ccp2 = 9
             for car in car_list2:
-                reward = reward - 1 if car.stopped else reward  # reward computation
-                # if car.stopped:
-                # reward = -1
+                # reward = reward - 1 if car.stopped else reward  # reward computation
+                if car.stopped:
+                    reward = -1
                 dist = light_down.posy - car.posy - 1
                 if(st.ccp2 > dist and dist >= 0):
                     st.ccp2 = dist
