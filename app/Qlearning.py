@@ -29,6 +29,8 @@ import collections
 import csv
 import copy
 import json
+import os
+import matplotlib.pyplot as plt
 
 
 class Qlearning:
@@ -40,6 +42,10 @@ class Qlearning:
         self.state = initial_state  # x = x0
         self.useFile = useFile  # load Q table from file or not
         # TODO will it be better to use DataFrame or defaultdict
+        self.directory = "data0 " + \
+            " discount_factor " + str(self.discount_factor) + \
+            " alpha " + str(self.learning_rate) + " epslion " + \
+            str(self.epsilon) + " state " + str(self.action_space)
         self.Q = self.createQTable()
         # self.Q = collections.defaultdict(
         #     lambda: np.zeros(len(self.action_space)))
@@ -105,24 +111,51 @@ class Qlearning:
         self.state = copy.deepcopy(newstate)
         # print("222222", self.state)
 
-    def saveResult(self):
+    def saveResult(self, x, y):
         # print(self.Q)
         keys = self.Q.keys()
-        if self.useFile:
-            np.save('qtable' +
-                    '.npy', np.array(dict(self.Q)))
+        if not os.path.exists(self.directory):
+            try:
+                os.makedirs(self.directory)
+            except OSError as exc:  # Guard against race condition
+                raise
+        np.save(os.path.join(self.directory, 'qtable.npy'),
+                np.array(dict(self.Q)))
         # print(len(keys))
-        with open('qtable.txt', 'w') as file:
+        y_mean = [np.mean(y)]*len(x)
+        with open(os.path.join(self.directory, 'qtable.txt'), 'w') as file:
+            file.write(str(y_mean))
             for key in sorted(keys):
                 file.write(str(key))
                 file.write(str(self.Q[key]) + '\n')
 
                 # file.write(json.dumps(self.Q))
+        plt.xlabel('Episode')
+        plt.ylabel('Reward Sum')
+        fig, ax = plt.subplots()
+        dataline = ax.plot(
+            x, y, label='Data', marker=',')
+        mean_line = ax.plot(x, y_mean,
+                            label='Mean', linestyle='--')
+
+        # Make a legend
+        legend = ax.legend(loc='upper right')
+        if self.useFile:
+            plt.savefig(os.path.join(self.directory,
+                                     'plot testing' + type(self).__name__))
+            plt.title(self.directory + ' plot testing' + type(self).__name__)
+        else:
+            plt.savefig(os.path.join(self.directory,
+                                     'plot training' + type(self).__name__))
+            plt.title(self.directory + ' plot training' + type(self).__name__)
+        plt.close(fig)
+        # plt.show()
 
     def loadQtable(self):
         # load Q table from file if file exists
         try:
-            P = np.load('qtable' + '.npy', allow_pickle=True)
+            P = np.load(os.path.join(self.directory,
+                                     'qtable.npy'), allow_pickle=True)
             Q = collections.defaultdict(
                 lambda: np.zeros(len(self.action_space)))
             Q.update(P.item())

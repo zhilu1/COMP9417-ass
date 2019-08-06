@@ -9,6 +9,7 @@ from app.Light import Light
 from app.Car import Car
 import random as rnd
 import time
+import numpy as np
 from tkinter import *
 root = Tk()
 
@@ -63,23 +64,47 @@ def main():
     time_step = 0.001
     end_time = 10
     # Keeps track of useful statistics
-    stats = {
-        'episode': [],
-        'rewardsSum': []
-    }
-    total_stats = {
-        'training': [0],
-        'totalReward': [0]
-    }
+    # algorithm = FixedSwitch()
+    algorithm = qLearning  # select algorithm
+
+    for epsilon in np.arange(0, 1, 0.1):
+        algorithm = Qlearning(
+            discount_factor=0.9, learning_rate=0.1, epsilon=epsilon, action_space=[0, 1], initial_state=State(9, 9, 9, 9, 1), useFile=False)
+        running(algorithm, cross, 100)
+        algorithm.useFile = True
+        running(algorithm, cross, 50)
+
+    for learning_rate in np.arange(0, 1, 0.1):
+        algorithm = Qlearning(
+            discount_factor=0.9, learning_rate=learning_rate, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 9, 9, 1), useFile=False)
+        running(algorithm, cross, 100)
+        algorithm.useFile = True
+        running(algorithm, cross, 50)
+    gammas = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5,
+              0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99]
+    for discount_factor in gammas:
+        algorithm = Qlearning(
+            discount_factor=discount_factor, learning_rate=0.1, epsilon=0.1, action_space=[0, 1], initial_state=State(9, 9, 9, 9, 1), useFile=False)
+        running(algorithm, cross, 100)
+        algorithm.useFile = True
+        running(algorithm, cross, 50)
+
+    # for training in range(10):
+    #     total_reward = 0
+
+
+def running(algorithm, cross, rounds):
+    print(str(algorithm))
     car_list_right = []
     car_list_down = []
     car_list_left = []
     car_list_up = []
-    # algorithm = FixedSwitch()
-    algorithm = qLearning  # select algorithm
-    # for training in range(10):
-    #     total_reward = 0
-    for episode in range(500):
+    stats = {
+        'episode': [],
+        'rewardsSum': []
+    }
+    time_step = 0.001
+    for episode in range(rounds):
 
         current_time = 0
         time_total = 0
@@ -143,9 +168,9 @@ def main():
             reward = 0
             st.ccp1 = 9
             for car in car_list_right:
-                # reward = reward - 1 if car.stopped else reward  # reward computation
-                if car.stopped:
-                    reward = -1
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                #     reward = -1
                 dist = light_right.posx - car.posx - 1
                 if(st.ccp1 > dist and dist >= 0):
                     st.ccp1 = dist
@@ -154,9 +179,9 @@ def main():
 
             st.ccp2 = 9
             for car in car_list_down:
-                # reward = reward - 1 if car.stopped else reward  # reward computation
-                if car.stopped:
-                    reward = -1
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                #     reward = -1
                 dist = light_down.posy - car.posy - 1
                 if(st.ccp2 > dist and dist >= 0):
                     st.ccp2 = dist
@@ -165,9 +190,9 @@ def main():
 
             st.ccp3 = 9
             for car in car_list_left:
-                # reward = reward - 1 if car.stopped else reward  # reward computation
-                if car.stopped:
-                    reward = -1
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                #     reward = -1
                 dist = car.posx - light_left.posx - 1
                 if(st.ccp3 > dist and dist >= 0):
                     st.ccp3 = dist
@@ -176,9 +201,9 @@ def main():
 
             st.ccp4 = 9
             for car in car_list_up:
-                # reward = reward - 1 if car.stopped else reward  # reward computation
-                if car.stopped:
-                    reward = -1
+                reward = reward - 1 if car.stopped else reward  # reward computation
+                # if car.stopped:
+                #     reward = -1
                 dist = car.posy - light_up.posy - 1
                 if(st.ccp4 > dist and dist >= 0):
                     st.ccp4 = dist
@@ -207,13 +232,16 @@ def main():
     # plt.plot(total_stats['training'], total_stats['totalReward'])
     # plt.xlabel('Training')
     # plt.ylabel('Reward Total')
-    algorithm.saveResult()
-    plt.plot(stats['episode'], stats['rewardsSum'])
-    plt.xlabel('Episode')
-    plt.ylabel('Reward Sum')
-    plt.title('plot' + type(algorithm).__name__)
-    plt.savefig('plot' + type(algorithm).__name__)
-    plt.show()
+    algorithm.saveResult(stats['episode'], stats['rewardsSum'])
+    # clean up all cars
+    for car in car_list_right:
+        car.destroy()
+    for car in car_list_down:
+        car.destroy()
+    for car in car_list_left:
+        car.destroy()
+    for car in car_list_up:
+        car.destroy()
 
 
 def updateLightState(state):
