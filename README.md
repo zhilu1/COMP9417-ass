@@ -1,7 +1,7 @@
 # COMP9417-ass
 
 ## Setup
-modules used in saved to requirements.txt
+modules used have been saved to requirements.txt
 After activate virtualenv, run 
 ```
 pip install -r requirements.txt
