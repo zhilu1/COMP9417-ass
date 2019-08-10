@@ -1,5 +1,5 @@
 """
-File containing global variables used in several files
+File containing global variables and constants used in several files
 
 """
 import numpy as np

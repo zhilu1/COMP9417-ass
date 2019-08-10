@@ -156,7 +156,8 @@ def running(algorithm, cross, rounds=150, intensitiy=5, reward_func=lambda a, co
         car_list_left = []
         car_list_up = []
         while time_total < 1:  # each episode contains 1000 time-steps
-
+            # slow down the execution if you want to see the simulating
+            # time.sleep(0.05)
             # get action a based on algorithm
             # take action a
             takeAction(algorithm.getAction())
