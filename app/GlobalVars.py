@@ -1,3 +1,7 @@
+"""
+File containing global variables used in several files
+
+"""
 import numpy as np
 
 unit = 8
@@ -13,4 +17,5 @@ def init():
 
     global roadmap
     roadmap = np.ones((total_width, total_width), dtype=bool)
+    # road map is a 2d array where each value indicates a position on map
     # true is crossable while false not

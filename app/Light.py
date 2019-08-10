@@ -1,3 +1,7 @@
+'''
+Light object used in traffic simulation
+'''
+
 from tkinter import *
 import app.GlobalVars as gv
 

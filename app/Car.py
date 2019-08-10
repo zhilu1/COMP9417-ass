@@ -1,3 +1,7 @@
+"""
+Car object used in traffic simulation
+"""
+
 from tkinter import *
 import app.GlobalVars as gv
 
@@ -28,7 +32,7 @@ class Car:
             self.dx = 1
             self.posx = 0
             self.posy = int(gv.block_width / gv.unit)
-        elif(dir == 'L'):  # car moving right
+        elif(dir == 'L'):  # car moving left
             self.car = canvas.create_rectangle(gv.total_width - gv.car_length, gv.block_width+gv.road_width-gv.car_width,
                                                gv.total_width, gv.block_width + gv.road_width,
                                                fill="light blue"
@@ -37,7 +41,7 @@ class Car:
             self.posx = int((gv.total_width - gv.car_length) / gv.unit)
             self.posy = int((gv.block_width+gv.road_width -
                              gv.car_width) / gv.unit)
-        elif(dir == 'U'):  # car moving right
+        elif(dir == 'U'):  # car moving up
             self.car = canvas.create_rectangle(gv.block_width, gv.total_width - gv.car_length,
                                                gv.block_width+gv.car_width, gv.total_width,
                                                fill="orange"
